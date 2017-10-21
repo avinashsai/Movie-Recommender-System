@@ -7,7 +7,7 @@ import pickle
 import pandas as pd
 import csv
 from sklearn.metrics import mean_squared_error
-
+import struct
 import itertools
 
 # Store data in arrays
@@ -42,6 +42,8 @@ for movie in item:
 movies=np.array(movies)
 
 kmeans=KMeans(n_clusters=19).fit(movies)
+
+
 
 
 utility = np.zeros((n_users, n_items))
@@ -123,7 +125,7 @@ def normalization():
             if(clustered_matrix[i][j]!=0):
                 normalize_rating[i][j]=clustered_matrix[i][j]-user[i].avg_r
             else:
-                normalize_rating[i][j]=float('inf')
+                normalize_rating[i][j]=9999999
     return normalize_rating
 
 # Guesses the ratings that user with id, user_id, might give to item with id, i_id.
@@ -144,15 +146,17 @@ def guess(user_id, i_id, top_n):
     temp = np.delete(temp, user_id-1, 0)
     
     for i in range(0,n_users):
-        if(user_id-1!=i):
+        if(i!=user_id-1):
             rating_similarity.append(Pearson_matrix[user_id-1][i])
+        
 
     rating_new= [x for (y,x) in sorted(zip(rating_similarity,temp), key=lambda pair: pair[0], reverse=True)]
+
 
     count=0
     sum=0
     for i in range(0,top_n):
-        if(rating_new[i][i_id-1]!=float('inf')):
+        if(rating_new[i][i_id-1]!=9999999):
             sum=sum+rating_new[i][i_id-1]
             count=count+1
     cal_rating=0
@@ -173,19 +177,28 @@ for i in range(0,n_users):
         if(final_ratings[i][j]==0):
             final_ratings[i][j]=guess(i+1,j+1,150)
 
-pickle.dump(final_ratings,open("utility_matrix.pkl","wb"))
 
-y_true=[]
+
+
+utility_test = np.zeros((n_users, n_items))
+for r in rating_test:
+    utility_test[r.user_id-1][r.item_id-1] = r.rating
+
+data=pd.read_csv("data/u.test",header=None,delimiter=r"\s+")
+
 y_pred=[]
 
+y_true=[]
 
-with open("data/u.test") as f:
-    data=[row for row in csv.reader(f,delimiter=' ')]
-    rating_guess=guess(data[0],data[1],150)
-    y_pred.append(rating_guess)
-    y_true.append(data[2])
+f=open('predictions.txt','w')
 
-y_pred=np.array(y_pred)
-y_true=np.array(y_true)
+for i in range(0,n_users):
+    for j in range(0,n_items):
+        if(utility_test[i][j]>0):
+            y_pred.append(final_ratings[i][kmeans.labels_[j]-1])
+            y_true.append(utility_test[i][j])
+            f.write("%d, %d, %.4f\n" % (i+1, j+1, final_ratings[i][kmeans.labels_[j]-1]))
+
+f.close()
 print(mean_squared_error(y_pred,y_true))
 
