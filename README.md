@@ -25,3 +25,7 @@ It consists of 9300 test examples.
 
 Algorithm acheived mean squared error of 1.24154447389
 
+optimising mean squared error:
+
+mean squared error for n_clusters =2 is 1.08155166095
+This is the most optimised algorithm so far.
