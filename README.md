@@ -31,3 +31,5 @@ mean squared error for n_clusters =2 is 1.08155166095
 This is the most optimised algorithm so far.
 
 The plot after applying PCA to data and clustering by Kmeans
+
+https://user-images.githubusercontent.com/22453634/31859508-b7b310be-b72a-11e7-91a6-7fdcde97d2e3.png
