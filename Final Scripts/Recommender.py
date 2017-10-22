@@ -2,6 +2,7 @@
 from movielens import *
 import numpy as np
 from sklearn.cluster import KMeans
+from sklearn.cluster import AgglomerativeClustering
 import math
 import pickle
 import pandas as pd
@@ -9,7 +10,9 @@ import csv
 from sklearn.metrics import mean_squared_error
 import struct
 import itertools
-
+import matplotlib.pyplot as plt
+from sklearn.decomposition import PCA
+from sklearn.preprocessing import scale
 # Store data in arrays
 user = []
 item = []
@@ -41,9 +44,21 @@ for movie in item:
 
 movies=np.array(movies)
 
-kmeans=KMeans(n_clusters=19).fit(movies)
+#reduced_data=PCA(n_components=2).fit_transform(movies)
+
+kmeans=KMeans(n_clusters=2).fit(movies)
+
+length=2
 
 
+centroids=kmeans.cluster_centers_
+
+plt.plot(reduced_data[:,0],reduced_data[:,1],'k.',markersize=2)
+
+plt.scatter(centroids[:,0],centroids[:,1],marker='x', s=169, linewidths=3,
+            color='w', zorder=10)
+plt.show()
+'''
 
 
 utility = np.zeros((n_users, n_items))
@@ -64,13 +79,13 @@ clustered_matrix=[]
 
 for i in range(0,n_users):
     mean_matrix=[]
-    for j in range(0,19):
+    for j in range(0,length):
         mean_matrix.append([])
-        value=np.zeros(19)
+        value=np.zeros(length)
     for j in range(0,n_items):
         if(utility[i][j]>0):
             mean_matrix[kmeans.labels_[j]-1].append(utility[i][j])
-    for j in range(0,19):
+    for j in range(0,length):
         if(len(mean_matrix[j])==0):
             value[j]=0
         else:
@@ -100,16 +115,16 @@ def pcs(x, y):
     y_r=0
     x_r_2=0
     y_r_2=0
-    for i in range(0,19):
+    for i in range(0,length):
         if(clustered_matrix[x-1][i]!=0 and clustered_matrix[y-1][i]!=0):
             x_r+=clustered_matrix[x-1][i]-user[x-1].avg_r
             y_r+=clustered_matrix[y-1][i]-user[y-1].avg_r
     rate1=clustered_matrix[x-1]
     rate2=clustered_matrix[y-1]
-    for i in range(0,19):
+    for i in range(0,length):
         if(clustered_matrix[x-1][i]!=0):
             x_r_2+=(clustered_matrix[x-1][i]-user[x-1].avg_r)*(clustered_matrix[x-1][i]-user[x-1].avg_r)
-    for i in range(0,19):
+    for i in range(0,length):
         if(clustered_matrix[y-1][i]!=0):
             y_r_2+=(clustered_matrix[y-1][i]-user[y-1].avg_r)*(clustered_matrix[y-1][i]-user[y-1].avg_r)
     if(x_r_2*y_r_2!=0):
@@ -119,9 +134,9 @@ def pcs(x, y):
 
 
 def normalization():
-    normalize_rating=np.zeros((n_users,19))
+    normalize_rating=np.zeros((n_users,length))
     for i in range(0,n_users):
-        for j in range(0,19):
+        for j in range(0,length):
             if(clustered_matrix[i][j]!=0):
                 normalize_rating[i][j]=clustered_matrix[i][j]-user[i].avg_r
             else:
@@ -173,7 +188,7 @@ def guess(user_id, i_id, top_n):
 final_ratings=np.array(clustered_matrix)
 
 for i in range(0,n_users):
-    for j in range(0,19):
+    for j in range(0,length):
         if(final_ratings[i][j]==0):
             final_ratings[i][j]=guess(i+1,j+1,150)
 
@@ -184,21 +199,22 @@ utility_test = np.zeros((n_users, n_items))
 for r in rating_test:
     utility_test[r.user_id-1][r.item_id-1] = r.rating
 
-data=pd.read_csv("data/u.test",header=None,delimiter=r"\s+")
+#data=pd.read_csv("data/u.test",header=None,delimiter=r"\s+")
 
 y_pred=[]
 
 y_true=[]
 
-f=open('predictions.txt','w')
+#f=open('predictions7.txt','w')
 
 for i in range(0,n_users):
     for j in range(0,n_items):
         if(utility_test[i][j]>0):
             y_pred.append(final_ratings[i][kmeans.labels_[j]-1])
             y_true.append(utility_test[i][j])
-            f.write("%d, %d, %.4f\n" % (i+1, j+1, final_ratings[i][kmeans.labels_[j]-1]))
+            #f.write("%d, %d, %.4f\n" % (i+1, j+1, final_ratings[i][kmeans.labels_[j]-1]))
 
-f.close()
+#f.close()
 print(mean_squared_error(y_pred,y_true))
 
+'''
