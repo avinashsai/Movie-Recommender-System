@@ -4,7 +4,7 @@ This  repository is about the movie recommender system
 
 Data set:
 
-The data set consists of 1630 users with more than 930 movies
+The data set consists of 930 users with more than 1630 movies
 
 Each movie has 19 features
 
