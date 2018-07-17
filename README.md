@@ -4,7 +4,9 @@ This  repository is about the movie recommender system
 
 Data set:
 
-The data set consists of 930 users with more than 1630 movies
+Dataset is taken from https://grouplens.org/datasets/movielens/ 
+
+The data set consists of 930 users with more than 1630 movies.
 
 Each movie has 19 features
 
